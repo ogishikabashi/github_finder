@@ -9,43 +9,68 @@ const GITHUB_TOKEN = process.env.REACT_APP_GITHUB_TOKEN;
 export const GithubProvider = ({ children }) => {
   const initialState = {
     users: [],
-    loading: false
-  }
+    user: {},
+    loading: false,
+  };
 
   //destructuring
-  const [state, dispatch] = useReducer(githubReducer, initialState)
+  const [state, dispatch] = useReducer(githubReducer, initialState);
 
   //clear uswers from state
-  const clearUsers = () => dispatch({type: 'CLEAR_USERS'})
-// search users
-  const searchUsers = async (text) => {
+  const clearUsers = () => dispatch({ type: "CLEAR_USERS" });
 
-    setLoading()
+  // get user
+  const getUser = async (login) => {
+    setLoading();
+
+    const response = await fetch(`${GITHUB_URL}/users/${login}`, {
+      headers: {
+        Authorization: `token ${GITHUB_TOKEN}`,
+      },
+    });
+
+    if (response.status === 404) {
+      window.location = "/notfound";
+    } else {
+      const data = await response.json();
+
+      dispatch({
+        type: "GET_USER",
+        payload: data,
+      });
+    }
+  };
+
+  // search users
+  const searchUsers = async (text) => {
+    setLoading();
     const params = new URLSearchParams({
-        q: text
-    })
+      q: text,
+    });
     const response = await fetch(`${GITHUB_URL}/search/users?${params}`, {
       headers: {
         Authorization: `token ${GITHUB_TOKEN}`,
       },
     });
-    const {items} = await response.json();
+    const { items } = await response.json();
     dispatch({
-        type: 'GET_USERS',
-        payload: items,
-    })
+      type: "GET_USERS",
+      payload: items,
+    });
   };
 
   //set loading function
 
-  const setLoading = () => dispatch({type: 'SET_LOADING'})
+  const setLoading = () => dispatch({ type: "SET_LOADING" });
   return (
     <GithubContext.Provider
       value={{
         users: state.users,
         loading: state.loading,
+        user: state.user,
         searchUsers,
         clearUsers,
+        getUser,
       }}
     >
       {children}
@@ -53,4 +78,4 @@ export const GithubProvider = ({ children }) => {
   );
 };
 
-export default GithubContext
+export default GithubContext;

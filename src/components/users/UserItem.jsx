@@ -19,6 +19,7 @@ function UserItem({ user: { login, avatar_url } }) {
                     >
                         Visit Profile
                     </Link>
+                    
                 </div>
             </div>
         </div>
